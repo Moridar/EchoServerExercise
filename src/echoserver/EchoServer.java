@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -33,7 +34,7 @@ public class EchoServer {
 
         ClientHandler(Socket socket, EchoServer ES) {
             this.socket = socket;
-            this.ES = ES;
+            this.ES = ES;           
         }
 
         public void send(String message) {
@@ -51,14 +52,17 @@ public class EchoServer {
                 Logger.getLogger(EchoServer.class.getName()).log(Level.INFO, String.format("Received the message: %1$S ", message));
                 while (!message.equals(ProtocolStrings.STOP)) {
                     ES.send(message);
-                    message = input.nextLine(); //IMPORTANT blocking call
+                    try {
+                        message = input.nextLine(); //IMPORTANT blocking call
+                    } catch (NoSuchElementException e) {
+                        break;
+                    }
                 }
                 writer.println(ProtocolStrings.STOP);//Echo the stop message back to the client for a nice closedown
                 socket.close();
                 ES.removeHandler(this);
                 Logger.getLogger(EchoServer.class.getName()).log(Level.INFO, "Closed a Connection");
             } catch (IOException ex) {
-
                 Logger.getLogger(EchoServer.class.getName()).log(Level.SEVERE, null, ex);
             }
 
